@@ -1,0 +1,20 @@
+# Generated data (recreate with Synthea, never commit bulk data)
+data/raw/
+output/
+*.csv.gz
+
+# Secrets: never commit these
+.env
+*.pem
+*.key
+profiles.yml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
