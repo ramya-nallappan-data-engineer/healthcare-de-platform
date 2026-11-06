@@ -16,7 +16,8 @@ from pyspark.sql import functions as F
 S = "workspace.silver"
 REPORT_ONLY = False
 
-RUN_GOLD = True
+dbutils.widgets.dropdown("stage", "all", ["silver", "gold", "all"], "Rule set to run")
+STAGE = dbutils.widgets.get("stage")
 
 def unique(t, c, s=S):
     return (t, f"{c}_unique", "error",
@@ -101,7 +102,10 @@ print(len(RULES), "silver rules,", len(GOLD_RULES), "gold rules")
 
 run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
 rows = []
-for t, name, sev, sql in RULES + (GOLD_RULES if RUN_GOLD else []):
+
+RULES_TO_RUN = {"silver": RULES, "gold": GOLD_RULES, "all": RULES + GOLD_RULES}[STAGE]
+
+for t, name, sev, sql in RULES_TO_RUN:
     bad = spark.sql(sql).collect()[0][0]
     status = "PASS" if bad == 0 else ("FAIL" if sev == "error" else "WARN")
     rows.append((run_id, t, name, sev, bad, status))
@@ -127,6 +131,15 @@ if failed and not REPORT_ONLY:
 # MAGIC   FROM workspace.dq.dq_results
 # MAGIC   GROUP BY run_id, status
 # MAGIC   ORDER BY run_id;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT run_id, status, COUNT(*) AS rules
+# MAGIC FROM workspace.dq.dq_results
+# MAGIC GROUP BY run_id, status
+# MAGIC ORDER BY run_id DESC
+# MAGIC LIMIT 5
 
 # COMMAND ----------
 
