@@ -58,7 +58,33 @@ for name in files:
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SELECT COUNT(*) AS n FROM workspace.bronze.patients VERSION AS OF 0;
+# MAGIC SELECT COUNT(*) AS total_rows, COUNT(DISTINCT Id) AS distinct_ids
+# MAGIC FROM workspace.bronze.patients;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT MIN(BIRTHDATE) AS oldest, MAX(BIRTHDATE) AS youngest,
+# MAGIC        SUM(CASE WHEN DEATHDATE IS NULL THEN 1 ELSE 0 END) AS alive
+# MAGIC FROM workspace.bronze.patients;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT START, STOP FROM workspace.bronze.encounters LIMIT 5;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT START, try_cast(START AS TIMESTAMP) AS start_ts
+# MAGIC FROM workspace.bronze.encounters LIMIT 5;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT COUNT(*) AS unreadable
+# MAGIC FROM workspace.bronze.encounters
+# MAGIC WHERE START IS NOT NULL AND try_cast(START AS TIMESTAMP) IS NULL;
 
 # COMMAND ----------
 
