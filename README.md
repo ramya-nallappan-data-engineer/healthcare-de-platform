@@ -56,7 +56,7 @@ Data volume: Synthea seed 12345, 123 patients, 5,599 encounters. The data is sma
 ## Design decisions
 
 - **Airflow owns the order and the retries.** Each of the five Databricks jobs has job-level retries switched off, so every attempt shows up as its own try in Airflow. Quality tasks have `retries=0` (a failed quality rule is a data problem, not a temporary fault); the other tasks retry once after 2 minutes.
-- **Re-runs are safe (idempotent).** Bronze is rebuilt with overwrite and the Snowflake load truncates and reloads, so running a task twice gives the same result and creates no duplicates.
+- **Re-runs are safe (idempotent).** Bronze is rebuilt with overwrite and the Snowflake load truncates and reloads, so running a task twice creates no duplicates and gives the same data (`age_years` depends on the build date).
 - **Quality failures stop the line.** Downstream tasks are skipped (`upstream_failed`), so Snowflake always holds the last good load.
 - **Manual trigger on purpose.** The input is static synthetic data, and the Free Edition has a daily compute quota, so a schedule would only rebuild identical tables. In production this DAG would run on a schedule or be triggered when new files arrive.
 - **Secrets stay out of the repo.** Snowflake uses key-pair authentication; the key and passphrase live in a Databricks secret scope. The Databricks token used by Airflow lives in an environment variable on the machine that runs Airflow. `.gitignore` blocks private key files.
@@ -79,3 +79,7 @@ Data volume: Synthea seed 12345, 123 patients, 5,599 encounters. The data is sma
 - The Databricks token used by Airflow expires after 30 days and must be renewed.
 - Bad rows are reported by the quality gate but not yet moved into a quarantine table (roadmap).
 - Tests cover the DAG structure only; unit tests for the Silver and loader logic are on the roadmap.
+
+## Documentation
+
+- [Data dictionary](docs/data_dictionary.md): Gold tables, columns, grain and business rules.
