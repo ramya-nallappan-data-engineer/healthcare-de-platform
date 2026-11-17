@@ -17,13 +17,15 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install Airflow and Databricks provider (with constraints)
+      - name: Install Airflow (with constraints)
         run: |
-          pip install "apache-airflow==${AIRFLOW_VERSION}" "apache-airflow-providers-databricks==7.23.0" \
+          pip install "apache-airflow==${AIRFLOW_VERSION}" \
             --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
-      - name: Install pytest
-        run: pip install "pytest==9.2.0"
-      - name: Show installed versions
-        run: pip freeze | grep -i -E "^(apache-airflow==|apache-airflow-providers-databricks==|pytest==)"
+      - name: Install Databricks provider and pytest
+        run: pip install "apache-airflow-providers-databricks==7.23.0" "pytest==9.2.0"
+      - name: Check dependencies and show versions
+        run: |
+          pip check
+          pip freeze | grep -i -E "^(apache-airflow==|apache-airflow-providers-databricks==|pytest==)"
       - name: Run tests
         run: python -m pytest tests -v
